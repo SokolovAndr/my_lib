@@ -1,0 +1,35 @@
+name: my_lib
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  cupertino_icons: ^1.0.2
+
+  #db plugins we need
+  sqfentity: ^2.4.0
+  sqfentity_gen: ^2.4.0
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  #these plugins will take care about building our database ance we define it
+  build_runner: ^2.4.8
+  build_verify: ^3.1.0
+
+  flutter_lints: ^2.0.0
+
+flutter:
+
+  uses-material-design: true

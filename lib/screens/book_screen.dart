@@ -74,15 +74,15 @@ class _BookScreenState extends State<BookScreen> {
                     if (title.isEmpty) {
                       return;
                     }
-                    final Book model = Book(
+                    final Book book = Book(
                       title: title,
                       isInactive: false,
                       authorsId: auth?.id,
                     );
-                    await model.save();
+                    await book.save();
                     //Navigator.pop(context);
                     //Navigator.pop<Author>(context, authors[index]);
-                    Navigator.pop<Book>(context, model);
+                    Navigator.pop<Book>(context, book);
                   },
                   child: Text('Добавить')),
             )

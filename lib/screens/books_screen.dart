@@ -1,5 +1,4 @@
 import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:my_lib/models/models.dart';
 import 'package:my_lib/screens/book_screen.dart';
@@ -13,45 +12,16 @@ class BooksScreen extends StatefulWidget {
 
 class _BooksScreenState extends State<BooksScreen> {
 
-  List<Book> books = [];
-  List<Book> books2 = [];
-  List<Author> authors = [];
-  String nameeee = "";
+  List<Book>? books = [];
 
   loadData() async {
-    //books = await Author().plBooks;
-    books = await Book().select().toList();
-    //authors = await Author().select().toList();
-    authors = await Author().select().toList();
-
+    books = await Book().select().toList(preload: true);
     setState(() {});
   }
-
-
-
-  /*Book? book = Book();
-  Author? author = Author();
-
-  loadData2() async {
-    book = await Book().getById(1);
-    author = await book?.getAuthor();
-  setState(() {});
-  }*/
-
-  Book? book = Book();
-  Author? author = Author();
-
-  loadData2() async {
-    book = await Book().getById(1);
-    author = await book?.getAuthor();
-    setState(() {});
-  }
-
 
   @override
   void initState() {
     loadData();
-    //loadData2();
     super.initState();
   }
 
@@ -69,7 +39,6 @@ class _BooksScreenState extends State<BooksScreen> {
               onPressed: () async {
                 await Book().select().isInactive.equals(true).delete();
                 loadData();
-                loadData2();
               },
             )
           ],
@@ -81,39 +50,27 @@ class _BooksScreenState extends State<BooksScreen> {
               shape: BoxShape.circle,
             ),
             child: IconButton(
-                //onPressed: showToAddDialog,
                 onPressed: () async {
                   await Navigator.push<Book>(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const BookScreen()));
-
                   loadData();
-                  loadData2();
                 },
                 icon: const Icon(Icons.add))),
         body: ListView.builder(
-            itemCount: books.length,
+            itemCount: books?.length,
             itemBuilder: (BuildContext context, int index) {
               return ListTile(
-                title: Text(books[index].title ?? ""),
-
-                subtitle: Text(books[index].authorsId.toString() ?? "error"),
-                //subtitle: Text(author?.name ?? "error"),
-                //subtitle: Text(books[index].plAuthor?.name ?? "error"),
-                //subtitle: Text(books2[index].plAuthor!.name ?? "error"),
-                //subtitle: Text(books[index].plAuthor?.name ?? "error"),
-                //subtitle: Text(authors[index].name.toString() ?? "error"),
-                //subtitle: Text(books[index].plAuthor?.name.toString() ?? "error"),
-
-                trailing: books[index].isInactive == true
+                title: Text(books?[index].title ?? ""),
+                subtitle: Text(books?[index].plAuthor?.name ?? "error"),
+                trailing: books?[index].isInactive == true
                     ? const Icon(Icons.check_box)
                     : const Icon(Icons.check_box_outline_blank),
                 onTap: () async {
-                  books[index].isInactive = !books[index].isInactive!;
-                  await books[index].save();
+                  books?[index].isInactive = books?[index].isInactive!;
+                  await books?[index].save();
                   loadData();
-                  loadData2();
                 },
               );
             }

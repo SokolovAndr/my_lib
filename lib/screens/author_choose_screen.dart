@@ -27,7 +27,7 @@ class _AuthorChooseScreenState extends State<AuthorChooseScreen> {
     return Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text("Выбор автора"),
+          title: const Text("Выбор автора"),
           centerTitle: true,
           toolbarHeight: 50,
         ),
@@ -38,11 +38,7 @@ class _AuthorChooseScreenState extends State<AuthorChooseScreen> {
               return ListTile(
                 title: Text(authors[index].name ?? ""),
                 onTap: ()  {
-                  //ЗДЕСЬ НУЖЕН КОД
-
-                  //Navigator.pop(context, authors[index].name);
                   Navigator.pop<Author>(context, authors[index]);
-
                 },
               );
             })

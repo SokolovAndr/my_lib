@@ -19,11 +19,11 @@ class _BookScreenState extends State<BookScreen> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('Добавление книги'),
+          title: const Text('Добавление книги'),
           centerTitle: true,
         ),
         body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(children: [
             Padding(
               padding: const EdgeInsets.only(top: 30.0),
@@ -49,7 +49,7 @@ class _BookScreenState extends State<BookScreen> {
               padding: const EdgeInsets.only(top: 20.0),
               child: ListTile(
                 shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 0.5),
+                  side: const BorderSide(width: 0.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
 
@@ -63,7 +63,10 @@ class _BookScreenState extends State<BookScreen> {
                           }));
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Выбранный автор: ${auth!.name.toString()}" ?? "User doesn't press anything")));
                 },
-                title: Text('Выберите автора'),
+                title: const Text('Выберите автора'),
+                //title: Text(auth!.name.toString()  ?? "Ничего не выбрано"),
+                //title: Text(auth.name.toString()  ?? "Ничего не выбрано"),
+
               ),
             ),
             Padding(
@@ -78,13 +81,12 @@ class _BookScreenState extends State<BookScreen> {
                       title: title,
                       isInactive: false,
                       authorsId: auth?.id,
+
                     );
                     await book.save();
-                    //Navigator.pop(context);
-                    //Navigator.pop<Author>(context, authors[index]);
                     Navigator.pop<Book>(context, book);
                   },
-                  child: Text('Добавить')),
+                  child: const Text('Добавить')),
             )
           ]),
         ));

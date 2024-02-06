@@ -52,7 +52,6 @@ class _BookScreenState extends State<BookScreen> {
                   side: const BorderSide(width: 0.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
-
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () async {
                   auth = await Navigator.push<Author>(
@@ -64,9 +63,26 @@ class _BookScreenState extends State<BookScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Выбранный автор: ${auth!.name.toString()}" ?? "User doesn't press anything")));
                 },
                 title: const Text('Выберите автора'),
-                //title: Text(auth!.name.toString()  ?? "Ничего не выбрано"),
-                //title: Text(auth.name.toString()  ?? "Ничего не выбрано"),
-
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(width: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () async {
+                  auth = await Navigator.push<Author>(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) {
+                            return const AuthorChooseScreen();
+                          }));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Выбранный жанр: ${auth!.name.toString()}" ?? "User doesn't press anything")));
+                },
+                title: const Text('Выберите жанр'),
               ),
             ),
             Padding(

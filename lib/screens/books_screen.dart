@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:my_lib/models/models.dart';
 import 'package:my_lib/screens/book_screen.dart';
+import 'package:my_lib/widgets/book_widget.dart';
 
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
@@ -11,7 +12,6 @@ class BooksScreen extends StatefulWidget {
 }
 
 class _BooksScreenState extends State<BooksScreen> {
-
   List<Book>? books = [];
 
   loadData() async {
@@ -60,21 +60,10 @@ class _BooksScreenState extends State<BooksScreen> {
                 icon: const Icon(Icons.add))),
         body: ListView.builder(
             itemCount: books?.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                title: Text(books?[index].title ?? ""),
-                subtitle: Text(books?[index].plAuthor?.name ?? "error"),
-                trailing: books?[index].isInactive == true
-                    ? const Icon(Icons.check_box)
-                    : const Icon(Icons.check_box_outline_blank),
-                onTap: () async {
-                  books?[index].isInactive = books?[index].isInactive!;
-                  await books?[index].save();
-                  loadData();
-                },
-              );
-            }
-        )
+            itemBuilder: (context, int index) => BookWidget(
+                  book: books?[index],
+                  onTap: (){} ,
+                ))
     );
   }
 }

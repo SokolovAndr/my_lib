@@ -38,7 +38,8 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
       builder: (_) => AlertDialog(
         title: const Text("Добавить автора"),
         content: TextField(
-
+          textCapitalization:
+          TextCapitalization.sentences, //текст с заглавной буквы
           onChanged: (value) => myName = value,
         ),
         actions: <Widget>[

@@ -4,7 +4,8 @@ import 'package:my_lib/screens/author_choose_screen.dart';
 
 class BookScreen extends StatefulWidget {
   final Book? book;
-  const BookScreen({Key? key, this.book}) : super(key: key);
+  final Author? auth;
+  const BookScreen({Key? key, this.book, this.auth}) : super(key: key);
 
   @override
   State<BookScreen> createState() => _BookScreenState();
@@ -14,12 +15,22 @@ class _BookScreenState extends State<BookScreen> {
   @override
   Widget build(BuildContext context) {
     final titleController = TextEditingController();
+    final authorNameController = TextEditingController();
+    Author? author = Author();
 
-    Author? auth = Author();
+
+    if (widget.book != null) {
+      titleController.text = widget.book!.title!;
+      authorNameController.text = widget.book!.plAuthor!.name!;
+    }
+
+
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Добавление книги'),
+          title: Text(widget.book == null
+              ? 'Добавление книги'
+              : 'Редактирование книги'),
           centerTitle: true,
         ),
         body: Padding(
@@ -47,62 +58,62 @@ class _BookScreenState extends State<BookScreen> {
             ),
             Padding(
               padding: const EdgeInsets.only(top: 20.0),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(width: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () async {
-                  auth = await Navigator.push<Author>(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) {
-                            return const AuthorChooseScreen();
-                          }));
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Выбранный автор: ${auth!.name.toString()}" ?? "User doesn't press anything")));
-                },
-                title: const Text('Выберите автора'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(width: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () async {
-                  auth = await Navigator.push<Author>(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) {
-                            return const AuthorChooseScreen();
-                          }));
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Выбранный жанр: ${auth!.name.toString()}" ?? "User doesn't press anything")));
-                },
-                title: const Text('Выберите жанр'),
-              ),
+
+                child: TextFormField(
+                  readOnly: true,
+                  controller: authorNameController,
+                  textCapitalization:
+                  TextCapitalization.sentences, //текст с заглавной буквы
+                  maxLines: 1,
+                  decoration:  InputDecoration(
+                      hintText: 'Автор',
+                      labelText: author.name ?? "Имя автора",
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                            width: 0.75,
+                          ),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10.0),
+                          ))),
+                  onTap: () async {
+                    author = await Navigator.push<Author>(context,
+                        MaterialPageRoute(builder: (context) {
+                          return const AuthorChooseScreen();
+                        }));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(  content: Text(
+                        "Выбранный автор: ${author!.name}" ??
+                            "User doesn't press anything")));
+                    authorNameController.text = author!.name.toString();
+                  },
+                )
+
             ),
             Padding(
               padding: const EdgeInsets.only(top: 20.0),
               child: ElevatedButton(
                   onPressed: () async {
-                    final title = titleController.value.text;
-                    if (title.isEmpty) {
+                    final myTitle = titleController.value.text;
+                    final myName = authorNameController.value.text;
+                    final authId = await MyAppDatabaseModel().execScalar('SELECT id FROM authors WHERE name = "$myName" ');
+
+                    if (myTitle.isEmpty || myName.isEmpty) {
                       return;
                     }
-                    final Book book = Book(
-                      title: title,
-                      isInactive: false,
-                      authorsId: auth?.id,
 
-                    );
+                    final Book book = Book(
+                        title: myTitle,
+                        isInactive: false,
+                        authorsId: author?.id = authId,
+                        //authorsId: author?.id,
+                        id: widget.book?.id);
+
                     await book.save();
                     Navigator.pop<Book>(context, book);
                   },
-                  child: const Text('Добавить')),
+                  child: Text(
+                    widget.book == null ? 'Добавить' : 'Редактировать',
+                  )),
             )
           ]),
         ));

@@ -38,6 +38,7 @@ class _BooksScreenState extends State<BooksScreen> {
               icon: const Icon(Icons.delete),
               onPressed: () async {
                 await Book().select().isInactive.equals(true).delete();
+                //await Book().select().delete();
                 loadData();
               },
             )
@@ -62,8 +63,20 @@ class _BooksScreenState extends State<BooksScreen> {
             itemCount: books?.length,
             itemBuilder: (context, int index) => BookWidget(
                   book: books?[index],
-                  onTap: (){} ,
-                ))
+
+                  onTap: ()   async {
+                    await Navigator.push<Book>(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BookScreen(
+                                book: books?[index], auth: books?[index].plAuthor,
+
+                            )));
+                    loadData();
+                  } ,
+                ),
+        ),
+      
     );
   }
 }

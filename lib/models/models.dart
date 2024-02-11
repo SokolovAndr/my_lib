@@ -34,6 +34,7 @@ const SqfEntityTable tableBook = SqfEntityTable(
     primaryKeyType: PrimaryKeyType.integer_auto_incremental,
     fields: [
       SqfEntityField('title', DbType.text),
+      SqfEntityField('image', DbType.text),
       SqfEntityField('isInactive', DbType.bool, defaultValue: false),
       SqfEntityFieldRelationship(
           parentTable: tableAuthor,

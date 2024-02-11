@@ -57,6 +57,7 @@ class TableBook extends SqfEntityTableBase {
     // declare fields
     fields = [
       SqfEntityFieldBase('title', DbType.text),
+      SqfEntityFieldBase('image', DbType.text),
       SqfEntityFieldBase('isInactive', DbType.bool, defaultValue: false),
       SqfEntityFieldRelationshipBase(
           TableAuthor.getInstance, DeleteRule.CASCADE,
@@ -1033,15 +1034,22 @@ class AuthorManager extends SqfEntityProvider {
 //endregion AuthorManager
 // region Book
 class Book extends TableBase {
-  Book({this.id, this.title, this.isInactive, this.authorsId, this.genresId}) {
+  Book(
+      {this.id,
+      this.title,
+      this.image,
+      this.isInactive,
+      this.authorsId,
+      this.genresId}) {
     _setDefaultValues();
     softDeleteActivated = false;
   }
-  Book.withFields(this.title, this.isInactive, this.authorsId, this.genresId) {
+  Book.withFields(
+      this.title, this.image, this.isInactive, this.authorsId, this.genresId) {
     _setDefaultValues();
   }
-  Book.withId(
-      this.id, this.title, this.isInactive, this.authorsId, this.genresId) {
+  Book.withId(this.id, this.title, this.image, this.isInactive, this.authorsId,
+      this.genresId) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -1052,6 +1060,9 @@ class Book extends TableBase {
     id = int.tryParse(o['id'].toString());
     if (o['title'] != null) {
       title = o['title'].toString();
+    }
+    if (o['image'] != null) {
+      image = o['image'].toString();
     }
     if (o['isInactive'] != null) {
       isInactive = o['isInactive'].toString() == '1' ||
@@ -1073,6 +1084,7 @@ class Book extends TableBase {
   // FIELDS (Book)
   int? id;
   String? title;
+  String? image;
   bool? isInactive;
   int? authorsId;
   int? genresId;
@@ -1121,6 +1133,9 @@ class Book extends TableBase {
     if (title != null || !forView) {
       map['title'] = title;
     }
+    if (image != null || !forView) {
+      map['image'] = image;
+    }
     if (isInactive != null) {
       map['isInactive'] = forQuery ? (isInactive! ? 1 : 0) : isInactive;
     } else if (isInactive != null || !forView) {
@@ -1157,6 +1172,9 @@ class Book extends TableBase {
     map['id'] = id;
     if (title != null || !forView) {
       map['title'] = title;
+    }
+    if (image != null || !forView) {
+      map['image'] = image;
     }
     if (isInactive != null) {
       map['isInactive'] = forQuery ? (isInactive! ? 1 : 0) : isInactive;
@@ -1199,12 +1217,12 @@ class Book extends TableBase {
 
   @override
   List<dynamic> toArgs() {
-    return [title, isInactive, authorsId, genresId];
+    return [title, image, isInactive, authorsId, genresId];
   }
 
   @override
   List<dynamic> toArgsWithIds() {
-    return [id, title, isInactive, authorsId, genresId];
+    return [id, title, image, isInactive, authorsId, genresId];
   }
 
   static Future<List<Book>?> fromWebUrl(Uri uri,
@@ -1387,8 +1405,8 @@ class Book extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnBook.rawInsert(
-          'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?)',
-          [id, title, isInactive, authorsId, genresId],
+          'INSERT OR REPLACE INTO books (id, title, image, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?,?)',
+          [id, title, image, isInactive, authorsId, genresId],
           ignoreBatch);
       if (result! > 0) {
         saveResult = BoolResult(
@@ -1413,7 +1431,7 @@ class Book extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Book> books,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnBook.rawInsertAll(
-        'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?)',
+        'INSERT OR REPLACE INTO books (id, title, image, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?,?)',
         books,
         exclusive: exclusive,
         noResult: noResult,
@@ -1679,6 +1697,11 @@ class BookFilterBuilder extends ConjunctionBase {
     return _title = _setField(_title, 'title', DbType.text);
   }
 
+  BookField? _image;
+  BookField get image {
+    return _image = _setField(_image, 'image', DbType.text);
+  }
+
   BookField? _isInactive;
   BookField get isInactive {
     return _isInactive = _setField(_isInactive, 'isInactive', DbType.bool);
@@ -1939,6 +1962,12 @@ class BookFields {
   static TableField get title {
     return _fTitle =
         _fTitle ?? SqlSyntax.setField(_fTitle, 'title', DbType.text);
+  }
+
+  static TableField? _fImage;
+  static TableField get image {
+    return _fImage =
+        _fImage ?? SqlSyntax.setField(_fImage, 'image', DbType.text);
   }
 
   static TableField? _fIsInactive;

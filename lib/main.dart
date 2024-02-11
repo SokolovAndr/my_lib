@@ -22,7 +22,6 @@ class _MyAppState extends State<MyApp> {
   saveData() async {
     for (int i = 0; i < genresString.length; i++) {
       final Genre genre = Genre(
-        //id: i,
           name: genresString[i]
       );
       await genre.save();

@@ -26,6 +26,40 @@ class _BookWidgetState extends State<BookWidget> {
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             child: Row(
               children: [
+                SizedBox(
+                  width: 100,
+                  height: 150,
+                  child: Image.network(
+                    widget.book!.image.toString(),
+                    errorBuilder: (BuildContext context, Object exception,
+                        StackTrace? stackTrace) {
+                      return Center(
+                        child:
+                        /*Text(
+                        'Мы не смогли загрузить изображение :(',
+                        style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                      ),*/
+                        Image.asset("assets/images/error_icon.png", width: 50,height: 50,),
+                      );
+                    },
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 25),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

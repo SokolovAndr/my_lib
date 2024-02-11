@@ -18,18 +18,17 @@ class _BookScreenState extends State<BookScreen> {
     final titleController = TextEditingController();
     final authorNameController = TextEditingController();
     final genreNameController = TextEditingController();
+    final imageController = TextEditingController();
 
     Author? author = Author();
     Genre? genre = Genre();
-
 
     if (widget.book != null) {
       titleController.text = widget.book!.title!;
       authorNameController.text = widget.book!.plAuthor!.name!;
       genreNameController.text = widget.book!.plGenre!.name!;
+      imageController.text = widget.book!.image!;
     }
-
-
 
     return Scaffold(
         appBar: AppBar(
@@ -62,15 +61,14 @@ class _BookScreenState extends State<BookScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-
+                padding: const EdgeInsets.only(top: 20.0),
                 child: TextFormField(
                   readOnly: true,
                   controller: authorNameController,
                   textCapitalization:
-                  TextCapitalization.sentences, //текст с заглавной буквы
+                      TextCapitalization.sentences, //текст с заглавной буквы
                   maxLines: 1,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                       hintText: 'Автор',
                       labelText: author.name ?? "Имя автора",
                       border: const OutlineInputBorder(
@@ -84,26 +82,23 @@ class _BookScreenState extends State<BookScreen> {
                   onTap: () async {
                     author = await Navigator.push<Author>(context,
                         MaterialPageRoute(builder: (context) {
-                          return const AuthorChooseScreen();
-                        }));
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(  content: Text(
-                        "Выбранный автор: ${author!.name}" ??
+                      return const AuthorChooseScreen();
+                    }));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Выбранный автор: ${author!.name}" ??
                             "User doesn't press anything")));
                     authorNameController.text = author!.name.toString();
                   },
-                )
-
-            ),
+                )),
             Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-
                 child: TextFormField(
                   readOnly: true,
                   controller: genreNameController,
                   textCapitalization:
-                  TextCapitalization.sentences, //текст с заглавной буквы
+                      TextCapitalization.sentences, //текст с заглавной буквы
                   maxLines: 1,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                       hintText: 'Жанр',
                       labelText: genre.name ?? "Название жанра",
                       border: const OutlineInputBorder(
@@ -117,15 +112,33 @@ class _BookScreenState extends State<BookScreen> {
                   onTap: () async {
                     genre = await Navigator.push<Genre>(context,
                         MaterialPageRoute(builder: (context) {
-                          return const GenreChooseScreen();
-                        }));
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(  content: Text(
-                        "Выбранный жанр: ${genre!.name}" ??
+                      return const GenreChooseScreen();
+                    }));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Выбранный жанр: ${genre!.name}" ??
                             "User doesn't press anything")));
                     genreNameController.text = genre!.name.toString();
                   },
-                )
-
+                )),
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: TextFormField(
+                controller: imageController,
+                decoration: const InputDecoration(
+                    hintText: 'Изображение',
+                    labelText: 'Ссылка на книгу',
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.white,
+                          width: 0.75,
+                        ),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(10.0),
+                        ))),
+                keyboardType: TextInputType.multiline,
+                onChanged: (str) {},
+                //maxLines: 5,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 20.0),
@@ -134,12 +147,19 @@ class _BookScreenState extends State<BookScreen> {
                     final myTitle = titleController.value.text;
 
                     final myAuthor = authorNameController.value.text;
-                    final authId = await MyAppDatabaseModel().execScalar('SELECT id FROM authors WHERE name = "$myAuthor" ');
+                    final authId = await MyAppDatabaseModel().execScalar(
+                        'SELECT id FROM authors WHERE name = "$myAuthor" ');
 
                     final myGenre = genreNameController.value.text;
-                    final genreId = await MyAppDatabaseModel().execScalar('SELECT id FROM genres WHERE name = "$myGenre" ');
+                    final genreId = await MyAppDatabaseModel().execScalar(
+                        'SELECT id FROM genres WHERE name = "$myGenre" ');
 
-                    if (myTitle.isEmpty || myAuthor.isEmpty || myGenre.isEmpty) {
+                    final myImage = imageController.value.text;
+
+                    if (myTitle.isEmpty ||
+                        myAuthor.isEmpty ||
+                        myGenre.isEmpty ||
+                        myImage.isEmpty) {
                       return;
                     }
 
@@ -148,6 +168,7 @@ class _BookScreenState extends State<BookScreen> {
                         isInactive: false,
                         authorsId: author?.id = authId,
                         genresId: genre?.id = genreId,
+                        image: myImage,
                         //authorsId: author?.id,
                         id: widget.book?.id);
 

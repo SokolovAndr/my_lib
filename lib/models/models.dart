@@ -18,6 +18,14 @@ const SqfEntityTable tableAuthor = SqfEntityTable(
       SqfEntityField('isInactive', DbType.bool, defaultValue: false)
     ]);
 
+const SqfEntityTable tableGenre = SqfEntityTable(
+    tableName: 'genres',
+    primaryKeyName: 'id',
+    useSoftDeleting: false,
+    primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+    fields: [
+      SqfEntityField('name', DbType.text),
+    ]);
 
 const SqfEntityTable tableBook = SqfEntityTable(
     tableName: 'books',
@@ -29,6 +37,11 @@ const SqfEntityTable tableBook = SqfEntityTable(
       SqfEntityField('isInactive', DbType.bool, defaultValue: false),
       SqfEntityFieldRelationship(
           parentTable: tableAuthor,
+          relationType: RelationType.ONE_TO_MANY,
+          deleteRule: DeleteRule.CASCADE,
+          defaultValue: 0),
+      SqfEntityFieldRelationship(
+          parentTable: tableGenre,
           relationType: RelationType.ONE_TO_MANY,
           deleteRule: DeleteRule.CASCADE,
           defaultValue: 0),
@@ -45,7 +58,7 @@ const myDbModel = SqfEntityModel(
   modelName: 'MyAppDatabaseModel',
   databaseName: 'lib.db',
   sequences: [seqIdentity],
-  databaseTables: [tableAuthor, tableBook],  //здесь добавляем таблицы
+  databaseTables: [tableAuthor, tableBook, tableGenre],  //здесь добавляем таблицы
 );
 
 //после этого в терминале пишим flutter pub run build_runner build --delete-conflicting-outputs

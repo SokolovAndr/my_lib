@@ -63,12 +63,38 @@ class TableBook extends SqfEntityTableBase {
           relationType: RelationType.ONE_TO_MANY,
           fieldName: 'authorsId',
           defaultValue: 0),
+      SqfEntityFieldRelationshipBase(TableGenre.getInstance, DeleteRule.CASCADE,
+          relationType: RelationType.ONE_TO_MANY,
+          fieldName: 'genresId',
+          defaultValue: 0),
     ];
     super.init();
   }
   static SqfEntityTableBase? _instance;
   static SqfEntityTableBase get getInstance {
     return _instance = _instance ?? TableBook();
+  }
+}
+
+// Genre TABLE
+class TableGenre extends SqfEntityTableBase {
+  TableGenre() {
+    // declare properties of EntityTable
+    tableName = 'genres';
+    primaryKeyName = 'id';
+    primaryKeyType = PrimaryKeyType.integer_auto_incremental;
+    useSoftDeleting = false;
+    // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
+
+    // declare fields
+    fields = [
+      SqfEntityFieldBase('name', DbType.text),
+    ];
+    super.init();
+  }
+  static SqfEntityTableBase? _instance;
+  static SqfEntityTableBase get getInstance {
+    return _instance = _instance ?? TableGenre();
   }
 }
 // END TABLES
@@ -104,6 +130,7 @@ class MyAppDatabaseModel extends SqfEntityModelProvider {
     databaseTables = [
       TableAuthor.getInstance,
       TableBook.getInstance,
+      TableGenre.getInstance,
     ];
 
     sequences = [
@@ -1006,14 +1033,15 @@ class AuthorManager extends SqfEntityProvider {
 //endregion AuthorManager
 // region Book
 class Book extends TableBase {
-  Book({this.id, this.title, this.isInactive, this.authorsId}) {
+  Book({this.id, this.title, this.isInactive, this.authorsId, this.genresId}) {
     _setDefaultValues();
     softDeleteActivated = false;
   }
-  Book.withFields(this.title, this.isInactive, this.authorsId) {
+  Book.withFields(this.title, this.isInactive, this.authorsId, this.genresId) {
     _setDefaultValues();
   }
-  Book.withId(this.id, this.title, this.isInactive, this.authorsId) {
+  Book.withId(
+      this.id, this.title, this.isInactive, this.authorsId, this.genresId) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -1031,9 +1059,14 @@ class Book extends TableBase {
     }
     authorsId = int.tryParse(o['authorsId'].toString());
 
+    genresId = int.tryParse(o['genresId'].toString());
+
     // RELATIONSHIPS FromMAP
     plAuthor = o['author'] != null
         ? Author.fromMap(o['author'] as Map<String, dynamic>)
+        : null;
+    plGenre = o['genre'] != null
+        ? Genre.fromMap(o['genre'] as Map<String, dynamic>)
         : null;
     // END RELATIONSHIPS FromMAP
   }
@@ -1042,6 +1075,7 @@ class Book extends TableBase {
   String? title;
   bool? isInactive;
   int? authorsId;
+  int? genresId;
 
   // end FIELDS (Book)
 
@@ -1054,6 +1088,18 @@ class Book extends TableBase {
   Future<Author?> getAuthor(
       {bool loadParents = false, List<String>? loadedFields}) async {
     final _obj = await Author().getById(authorsId,
+        loadParents: loadParents, loadedFields: loadedFields);
+    return _obj;
+  }
+
+  /// to load parent of items to this field, use preload parameter ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plGenre', 'plField2'..]) or so on..
+  Genre? plGenre;
+
+  /// get Genre By GenresId
+  Future<Genre?> getGenre(
+      {bool loadParents = false, List<String>? loadedFields}) async {
+    final _obj = await Genre().getById(genresId,
         loadParents: loadParents, loadedFields: loadedFields);
     return _obj;
   }
@@ -1089,6 +1135,15 @@ class Book extends TableBase {
     } else if (authorsId != null || !forView) {
       map['authorsId'] = null;
     }
+    if (genresId != null) {
+      map['genresId'] = forView
+          ? plGenre == null
+              ? genresId
+              : plGenre!.name
+          : genresId;
+    } else if (genresId != null || !forView) {
+      map['genresId'] = null;
+    }
 
     return map;
   }
@@ -1117,6 +1172,15 @@ class Book extends TableBase {
     } else if (authorsId != null || !forView) {
       map['authorsId'] = null;
     }
+    if (genresId != null) {
+      map['genresId'] = forView
+          ? plGenre == null
+              ? genresId
+              : plGenre!.name
+          : genresId;
+    } else if (genresId != null || !forView) {
+      map['genresId'] = null;
+    }
 
     return map;
   }
@@ -1135,12 +1199,12 @@ class Book extends TableBase {
 
   @override
   List<dynamic> toArgs() {
-    return [title, isInactive, authorsId];
+    return [title, isInactive, authorsId, genresId];
   }
 
   @override
   List<dynamic> toArgsWithIds() {
-    return [id, title, isInactive, authorsId];
+    return [id, title, isInactive, authorsId, genresId];
   }
 
   static Future<List<Book>?> fromWebUrl(Uri uri,
@@ -1195,6 +1259,12 @@ class Book extends TableBase {
           obj.plAuthor =
               obj.plAuthor ?? await obj.getAuthor(loadParents: loadParents);
         }
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plGenre'))) {
+          obj.plGenre =
+              obj.plGenre ?? await obj.getGenre(loadParents: loadParents);
+        }
       } // END RELATIONSHIPS PRELOAD
 
       objList.add(obj);
@@ -1232,6 +1302,12 @@ class Book extends TableBase {
             preloadFields.contains('plAuthor'))) {
           obj.plAuthor =
               obj.plAuthor ?? await obj.getAuthor(loadParents: loadParents);
+        }
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plGenre'))) {
+          obj.plGenre =
+              obj.plGenre ?? await obj.getGenre(loadParents: loadParents);
         }
       } // END RELATIONSHIPS PRELOAD
     } else {
@@ -1311,8 +1387,8 @@ class Book extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnBook.rawInsert(
-          'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId)  VALUES (?,?,?,?)',
-          [id, title, isInactive, authorsId],
+          'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?)',
+          [id, title, isInactive, authorsId, genresId],
           ignoreBatch);
       if (result! > 0) {
         saveResult = BoolResult(
@@ -1337,7 +1413,7 @@ class Book extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Book> books,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnBook.rawInsertAll(
-        'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId)  VALUES (?,?,?,?)',
+        'INSERT OR REPLACE INTO books (id, title, isInactive, authorsId, genresId)  VALUES (?,?,?,?,?)',
         books,
         exclusive: exclusive,
         noResult: noResult,
@@ -1387,6 +1463,7 @@ class Book extends TableBase {
   void _setDefaultValues() {
     isInactive = isInactive ?? false;
     authorsId = authorsId ?? 0;
+    genresId = genresId ?? 0;
   }
 
   @override
@@ -1612,6 +1689,11 @@ class BookFilterBuilder extends ConjunctionBase {
     return _authorsId = _setField(_authorsId, 'authorsId', DbType.integer);
   }
 
+  BookField? _genresId;
+  BookField get genresId {
+    return _genresId = _setField(_genresId, 'genresId', DbType.integer);
+  }
+
   /// Deletes List<Book> bulk by query
   ///
   /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
@@ -1670,6 +1752,12 @@ class BookFilterBuilder extends ConjunctionBase {
             preloadFields.contains('plAuthor'))) {
           obj.plAuthor =
               obj.plAuthor ?? await obj.getAuthor(loadParents: loadParents);
+        }
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plGenre'))) {
+          obj.plGenre =
+              obj.plGenre ?? await obj.getGenre(loadParents: loadParents);
         }
       } // END RELATIONSHIPS PRELOAD
     } else {
@@ -1864,6 +1952,12 @@ class BookFields {
     return _fAuthorsId = _fAuthorsId ??
         SqlSyntax.setField(_fAuthorsId, 'authorsId', DbType.integer);
   }
+
+  static TableField? _fGenresId;
+  static TableField get genresId {
+    return _fGenresId = _fGenresId ??
+        SqlSyntax.setField(_fGenresId, 'genresId', DbType.integer);
+  }
 }
 // endregion BookFields
 
@@ -1880,6 +1974,855 @@ class BookManager extends SqfEntityProvider {
 }
 
 //endregion BookManager
+// region Genre
+class Genre extends TableBase {
+  Genre({this.id, this.name}) {
+    _setDefaultValues();
+    softDeleteActivated = false;
+  }
+  Genre.withFields(this.name) {
+    _setDefaultValues();
+  }
+  Genre.withId(this.id, this.name) {
+    _setDefaultValues();
+  }
+  // fromMap v2.0
+  Genre.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
+    if (setDefaultValues) {
+      _setDefaultValues();
+    }
+    id = int.tryParse(o['id'].toString());
+    if (o['name'] != null) {
+      name = o['name'].toString();
+    }
+  }
+  // FIELDS (Genre)
+  int? id;
+  String? name;
+
+  // end FIELDS (Genre)
+
+// COLLECTIONS & VIRTUALS (Genre)
+  /// to load children of items to this field, use preload parameter. Ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plBooks', 'plField2'..]) or so on..
+  List<Book>? plBooks;
+
+  /// get Book(s) filtered by id=genresId
+  BookFilterBuilder? getBooks(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    if (id == null) {
+      return null;
+    }
+    return Book()
+        .select(columnsToSelect: columnsToSelect, getIsDeleted: getIsDeleted)
+        .genresId
+        .equals(id)
+        .and;
+  }
+
+// END COLLECTIONS & VIRTUALS (Genre)
+
+  static const bool _softDeleteActivated = false;
+  GenreManager? __mnGenre;
+
+  GenreManager get _mnGenre {
+    return __mnGenre = __mnGenre ?? GenreManager();
+  }
+
+  // METHODS
+  @override
+  Map<String, dynamic> toMap(
+      {bool forQuery = false, bool forJson = false, bool forView = false}) {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    if (name != null || !forView) {
+      map['name'] = name;
+    }
+
+    return map;
+  }
+
+  @override
+  Future<Map<String, dynamic>> toMapWithChildren(
+      [bool forQuery = false,
+      bool forJson = false,
+      bool forView = false]) async {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    if (name != null || !forView) {
+      map['name'] = name;
+    }
+
+// COLLECTIONS (Genre)
+    if (!forQuery) {
+      map['Books'] = await getBooks()!.toMapList();
+    }
+// END COLLECTIONS (Genre)
+
+    return map;
+  }
+
+  /// This method returns Json String [Genre]
+  @override
+  String toJson() {
+    return json.encode(toMap(forJson: true));
+  }
+
+  /// This method returns Json String [Genre]
+  @override
+  Future<String> toJsonWithChilds() async {
+    return json.encode(await toMapWithChildren(false, true));
+  }
+
+  @override
+  List<dynamic> toArgs() {
+    return [name];
+  }
+
+  @override
+  List<dynamic> toArgsWithIds() {
+    return [id, name];
+  }
+
+  static Future<List<Genre>?> fromWebUrl(Uri uri,
+      {Map<String, String>? headers}) async {
+    try {
+      final response = await http.get(uri, headers: headers);
+      return await fromJson(response.body);
+    } catch (e) {
+      debugPrint(
+          'SQFENTITY ERROR Genre.fromWebUrl: ErrorMessage: ${e.toString()}');
+      return null;
+    }
+  }
+
+  Future<http.Response> postUrl(Uri uri, {Map<String, String>? headers}) {
+    return http.post(uri, headers: headers, body: toJson());
+  }
+
+  static Future<List<Genre>> fromJson(String jsonBody) async {
+    final Iterable list = await json.decode(jsonBody) as Iterable;
+    var objList = <Genre>[];
+    try {
+      objList = list
+          .map((genre) => Genre.fromMap(genre as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint(
+          'SQFENTITY ERROR Genre.fromJson: ErrorMessage: ${e.toString()}');
+    }
+    return objList;
+  }
+
+  static Future<List<Genre>> fromMapList(List<dynamic> data,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields,
+      bool setDefaultValues = true}) async {
+    final List<Genre> objList = <Genre>[];
+    loadedFields = loadedFields ?? [];
+    for (final map in data) {
+      final obj = Genre.fromMap(map as Map<String, dynamic>,
+          setDefaultValues: setDefaultValues);
+      // final List<String> _loadedFields = List<String>.from(loadedFields);
+
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('genres.plBooks') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plBooks'))) {
+          /*_loadedfields!.add('genres.plBooks'); */ obj.plBooks =
+              obj.plBooks ??
+                  await obj.getBooks()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
+
+      objList.add(obj);
+    }
+    return objList;
+  }
+
+  /// returns Genre by ID if exist, otherwise returns null
+  /// Primary Keys: int? id
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: getById(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: getById(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns>returns [Genre] if exist, otherwise returns null
+  Future<Genre?> getById(int? id,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    if (id == null) {
+      return null;
+    }
+    Genre? obj;
+    final data = await _mnGenre.getById([id]);
+    if (data.length != 0) {
+      obj = Genre.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('genres.plBooks') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plBooks'))) {
+          /*_loadedfields!.add('genres.plBooks'); */ obj.plBooks =
+              obj.plBooks ??
+                  await obj.getBooks()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// Saves the (Genre) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
+  /// ignoreBatch = true as a default. Set ignoreBatch to false if you run more than one save() operation those are between batchStart and batchCommit
+  /// <returns>Returns id
+  @override
+  Future<int?> save({bool ignoreBatch = true}) async {
+    if (id == null || id == 0) {
+      id = await _mnGenre.insert(this, ignoreBatch);
+    } else {
+      await _mnGenre.update(this);
+    }
+
+    return id;
+  }
+
+  /// Saves the (Genre) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
+  /// ignoreBatch = true as a default. Set ignoreBatch to false if you run more than one save() operation those are between batchStart and batchCommit
+  /// <returns>Returns id
+  @override
+  Future<int?> saveOrThrow({bool ignoreBatch = true}) async {
+    if (id == null || id == 0) {
+      id = await _mnGenre.insertOrThrow(this, ignoreBatch);
+
+      isInsert = true;
+    } else {
+      // id= await _upsert(); // removed in sqfentity_gen 1.3.0+6
+      await _mnGenre.updateOrThrow(this);
+    }
+
+    return id;
+  }
+
+  /// saveAs Genre. Returns a new Primary Key value of Genre
+
+  /// <returns>Returns a new Primary Key value of Genre
+  @override
+  Future<int?> saveAs({bool ignoreBatch = true}) async {
+    id = null;
+
+    return save(ignoreBatch: ignoreBatch);
+  }
+
+  /// saveAll method saves the sent List<Genre> as a bulk in one transaction
+  /// Returns a <List<BoolResult>>
+  static Future<List<dynamic>> saveAll(List<Genre> genres,
+      {bool? exclusive, bool? noResult, bool? continueOnError}) async {
+    List<dynamic>? result = [];
+    // If there is no open transaction, start one
+    final isStartedBatch = await MyAppDatabaseModel().batchStart();
+    for (final obj in genres) {
+      await obj.save(ignoreBatch: false);
+    }
+    if (!isStartedBatch) {
+      result = await MyAppDatabaseModel().batchCommit(
+          exclusive: exclusive,
+          noResult: noResult,
+          continueOnError: continueOnError);
+      for (int i = 0; i < genres.length; i++) {
+        if (genres[i].id == null) {
+          genres[i].id = result![i] as int;
+        }
+      }
+    }
+    return result!;
+  }
+
+  /// Updates if the record exists, otherwise adds a new row
+  /// <returns>Returns id
+  @override
+  Future<int?> upsert({bool ignoreBatch = true}) async {
+    try {
+      final result = await _mnGenre.rawInsert(
+          'INSERT OR REPLACE INTO genres (id, name)  VALUES (?,?)',
+          [id, name],
+          ignoreBatch);
+      if (result! > 0) {
+        saveResult = BoolResult(
+            success: true, successMessage: 'Genre id=$id updated successfully');
+      } else {
+        saveResult = BoolResult(
+            success: false, errorMessage: 'Genre id=$id did not update');
+      }
+      return id;
+    } catch (e) {
+      saveResult = BoolResult(
+          success: false,
+          errorMessage: 'Genre Save failed. Error: ${e.toString()}');
+      return null;
+    }
+  }
+
+  /// inserts or replaces the sent List<<Genre>> as a bulk in one transaction.
+  /// upsertAll() method is faster then saveAll() method. upsertAll() should be used when you are sure that the primary key is greater than zero
+  /// Returns a BoolCommitResult
+  @override
+  Future<BoolCommitResult> upsertAll(List<Genre> genres,
+      {bool? exclusive, bool? noResult, bool? continueOnError}) async {
+    final results = await _mnGenre.rawInsertAll(
+        'INSERT OR REPLACE INTO genres (id, name)  VALUES (?,?)', genres,
+        exclusive: exclusive,
+        noResult: noResult,
+        continueOnError: continueOnError);
+    return results;
+  }
+
+  /// Deletes Genre
+
+  /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
+  @override
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    debugPrint('SQFENTITIY: delete Genre invoked (id=$id)');
+    var result = BoolResult(success: false);
+    {
+      result = await Book().select().genresId.equals(id).and.delete(hardDelete);
+    }
+    if (!result.success) {
+      return result;
+    }
+    if (!_softDeleteActivated || hardDelete) {
+      return _mnGenre
+          .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
+    } else {
+      return _mnGenre.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 1});
+    }
+  }
+
+  @override
+  Future<BoolResult> recover([bool recoverChilds = true]) {
+    // not implemented because:
+    final msg =
+        'set useSoftDeleting:true in the table definition of [Genre] to use this feature';
+    throw UnimplementedError(msg);
+  }
+
+  @override
+  GenreFilterBuilder select(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return GenreFilterBuilder(this, getIsDeleted)
+      ..qparams.selectColumns = columnsToSelect;
+  }
+
+  @override
+  GenreFilterBuilder distinct(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return GenreFilterBuilder(this, getIsDeleted)
+      ..qparams.selectColumns = columnsToSelect
+      ..qparams.distinct = true;
+  }
+
+  void _setDefaultValues() {}
+
+  @override
+  void rollbackPk() {
+    if (isInsert == true) {
+      id = null;
+    }
+  }
+
+  // END METHODS
+  // BEGIN CUSTOM CODE
+  /*
+      you can define customCode property of your SqfEntityTable constant. For example:
+      const tablePerson = SqfEntityTable(
+      tableName: 'person',
+      primaryKeyName: 'id',
+      primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+      fields: [
+        SqfEntityField('firstName', DbType.text),
+        SqfEntityField('lastName', DbType.text),
+      ],
+      customCode: '''
+       String fullName()
+       { 
+         return '$firstName $lastName';
+       }
+      ''');
+     */
+  // END CUSTOM CODE
+}
+// endregion genre
+
+// region GenreField
+class GenreField extends FilterBase {
+  GenreField(GenreFilterBuilder genreFB) : super(genreFB);
+
+  @override
+  GenreFilterBuilder equals(dynamic pValue) {
+    return super.equals(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder equalsOrNull(dynamic pValue) {
+    return super.equalsOrNull(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder isNull() {
+    return super.isNull() as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder contains(dynamic pValue) {
+    return super.contains(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder startsWith(dynamic pValue) {
+    return super.startsWith(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder endsWith(dynamic pValue) {
+    return super.endsWith(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder between(dynamic pFirst, dynamic pLast) {
+    return super.between(pFirst, pLast) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder greaterThan(dynamic pValue) {
+    return super.greaterThan(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder lessThan(dynamic pValue) {
+    return super.lessThan(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder greaterThanOrEquals(dynamic pValue) {
+    return super.greaterThanOrEquals(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder lessThanOrEquals(dynamic pValue) {
+    return super.lessThanOrEquals(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreFilterBuilder inValues(dynamic pValue) {
+    return super.inValues(pValue) as GenreFilterBuilder;
+  }
+
+  @override
+  GenreField get not {
+    return super.not as GenreField;
+  }
+}
+// endregion GenreField
+
+// region GenreFilterBuilder
+class GenreFilterBuilder extends ConjunctionBase {
+  GenreFilterBuilder(Genre obj, bool? getIsDeleted) : super(obj, getIsDeleted) {
+    _mnGenre = obj._mnGenre;
+    _softDeleteActivated = obj.softDeleteActivated;
+  }
+
+  bool _softDeleteActivated = false;
+  GenreManager? _mnGenre;
+
+  /// put the sql keyword 'AND'
+  @override
+  GenreFilterBuilder get and {
+    super.and;
+    return this;
+  }
+
+  /// put the sql keyword 'OR'
+  @override
+  GenreFilterBuilder get or {
+    super.or;
+    return this;
+  }
+
+  /// open parentheses
+  @override
+  GenreFilterBuilder get startBlock {
+    super.startBlock;
+    return this;
+  }
+
+  /// String whereCriteria, write raw query without 'where' keyword. Like this: 'field1 like 'test%' and field2 = 3'
+  @override
+  GenreFilterBuilder where(String? whereCriteria, {dynamic parameterValue}) {
+    super.where(whereCriteria, parameterValue: parameterValue);
+    return this;
+  }
+
+  /// page = page number,
+  /// pagesize = row(s) per page
+  @override
+  GenreFilterBuilder page(int page, int pagesize) {
+    super.page(page, pagesize);
+    return this;
+  }
+
+  /// int count = LIMIT
+  @override
+  GenreFilterBuilder top(int count) {
+    super.top(count);
+    return this;
+  }
+
+  /// close parentheses
+  @override
+  GenreFilterBuilder get endBlock {
+    super.endBlock;
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='name, date'
+  /// Example 2: argFields = ['name', 'date']
+  @override
+  GenreFilterBuilder orderBy(dynamic argFields) {
+    super.orderBy(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='field1, field2'
+  /// Example 2: argFields = ['field1', 'field2']
+  @override
+  GenreFilterBuilder orderByDesc(dynamic argFields) {
+    super.orderByDesc(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='field1, field2'
+  /// Example 2: argFields = ['field1', 'field2']
+  @override
+  GenreFilterBuilder groupBy(dynamic argFields) {
+    super.groupBy(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='name, date'
+  /// Example 2: argFields = ['name', 'date']
+  @override
+  GenreFilterBuilder having(dynamic argFields) {
+    super.having(argFields);
+    return this;
+  }
+
+  GenreField _setField(GenreField? field, String colName, DbType dbtype) {
+    return GenreField(this)
+      ..param = DbParameter(
+          dbType: dbtype, columnName: colName, wStartBlock: openedBlock);
+  }
+
+  GenreField? _id;
+  GenreField get id {
+    return _id = _setField(_id, 'id', DbType.integer);
+  }
+
+  GenreField? _name;
+  GenreField get name {
+    return _name = _setField(_name, 'name', DbType.text);
+  }
+
+  /// Deletes List<Genre> bulk by query
+  ///
+  /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
+  @override
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    buildParameters();
+    var r = BoolResult(success: false);
+    // Delete sub records where in (Book) according to DeleteRule.CASCADE
+    final idListBookBYgenresId = toListPrimaryKeySQL(false);
+    final resBookBYgenresId = await Book()
+        .select()
+        .where('genresId IN (${idListBookBYgenresId['sql']})',
+            parameterValue: idListBookBYgenresId['args'])
+        .delete(hardDelete);
+    if (!resBookBYgenresId.success) {
+      return resBookBYgenresId;
+    }
+
+    if (_softDeleteActivated && !hardDelete) {
+      r = await _mnGenre!.updateBatch(qparams, {'isDeleted': 1});
+    } else {
+      r = await _mnGenre!.delete(qparams);
+    }
+    return r;
+  }
+
+  /// using:
+  /// update({'fieldName': Value})
+  /// fieldName must be String. Value is dynamic, it can be any of the (int, bool, String.. )
+  @override
+  Future<BoolResult> update(Map<String, dynamic> values) {
+    buildParameters();
+    if (qparams.limit! > 0 || qparams.offset! > 0) {
+      qparams.whereString =
+          'id IN (SELECT id from genres ${qparams.whereString!.isNotEmpty ? 'WHERE ${qparams.whereString}' : ''}${qparams.limit! > 0 ? ' LIMIT ${qparams.limit}' : ''}${qparams.offset! > 0 ? ' OFFSET ${qparams.offset}' : ''})';
+    }
+    return _mnGenre!.updateBatch(qparams, values);
+  }
+
+  /// This method always returns [Genre] Obj if exist, otherwise returns null
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toSingle(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns> Genre?
+  @override
+  Future<Genre?> toSingle(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    buildParameters(pSize: 1);
+    final objFuture = _mnGenre!.toList(qparams);
+    final data = await objFuture;
+    Genre? obj;
+    if (data.isNotEmpty) {
+      obj = Genre.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('genres.plBooks') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plBooks'))) {
+          /*_loadedfields!.add('genres.plBooks'); */ obj.plBooks =
+              obj.plBooks ??
+                  await obj.getBooks()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// This method always returns [Genre]
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toSingle(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns> Genre?
+  @override
+  Future<Genre> toSingleOrDefault(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    return await toSingle(
+            preload: preload,
+            preloadFields: preloadFields,
+            loadParents: loadParents,
+            loadedFields: loadedFields) ??
+        Genre();
+  }
+
+  /// This method returns int. [Genre]
+  /// <returns>int
+  @override
+  Future<int> toCount([VoidCallback Function(int c)? genreCount]) async {
+    buildParameters();
+    qparams.selectColumns = ['COUNT(1) AS CNT'];
+    final genresFuture = await _mnGenre!.toList(qparams);
+    final int count = genresFuture[0]['CNT'] as int;
+    if (genreCount != null) {
+      genreCount(count);
+    }
+    return count;
+  }
+
+  /// This method returns List<Genre> [Genre]
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toList(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toList(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns>List<Genre>
+  @override
+  Future<List<Genre>> toList(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    final data = await toMapList();
+    final List<Genre> genresData = await Genre.fromMapList(data,
+        preload: preload,
+        preloadFields: preloadFields,
+        loadParents: loadParents,
+        loadedFields: loadedFields,
+        setDefaultValues: qparams.selectColumns == null);
+    return genresData;
+  }
+
+  /// This method returns Json String [Genre]
+  @override
+  Future<String> toJson() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(o.toMap(forJson: true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns Json String. [Genre]
+  @override
+  Future<String> toJsonWithChilds() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(await o.toMapWithChildren(false, true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns List<dynamic>. [Genre]
+  /// <returns>List<dynamic>
+  @override
+  Future<List<dynamic>> toMapList() async {
+    buildParameters();
+    return await _mnGenre!.toList(qparams);
+  }
+
+  /// This method returns Primary Key List SQL and Parameters retVal = Map<String,dynamic>. [Genre]
+  /// retVal['sql'] = SQL statement string, retVal['args'] = whereArguments List<dynamic>;
+  /// <returns>List<String>
+  @override
+  Map<String, dynamic> toListPrimaryKeySQL([bool buildParams = true]) {
+    final Map<String, dynamic> _retVal = <String, dynamic>{};
+    if (buildParams) {
+      buildParameters();
+    }
+    _retVal['sql'] = 'SELECT `id` FROM genres WHERE ${qparams.whereString}';
+    _retVal['args'] = qparams.whereArguments;
+    return _retVal;
+  }
+
+  /// This method returns Primary Key List<int>.
+  /// <returns>List<int>
+  @override
+  Future<List<int>> toListPrimaryKey([bool buildParams = true]) async {
+    if (buildParams) {
+      buildParameters();
+    }
+    final List<int> idData = <int>[];
+    qparams.selectColumns = ['id'];
+    final idFuture = await _mnGenre!.toList(qparams);
+
+    final int count = idFuture.length;
+    for (int i = 0; i < count; i++) {
+      idData.add(idFuture[i]['id'] as int);
+    }
+    return idData;
+  }
+
+  /// Returns List<dynamic> for selected columns. Use this method for 'groupBy' with min,max,avg..  [Genre]
+  /// Sample usage: (see EXAMPLE 4.2 at https://github.com/hhtokpinar/sqfEntity#group-by)
+  @override
+  Future<List<dynamic>> toListObject() async {
+    buildParameters();
+
+    final objectFuture = _mnGenre!.toList(qparams);
+
+    final List<dynamic> objectsData = <dynamic>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i]);
+    }
+    return objectsData;
+  }
+
+  /// Returns List<String> for selected first column
+  /// Sample usage: await Genre.select(columnsToSelect: ['columnName']).toListString()
+  @override
+  Future<List<String>> toListString(
+      [VoidCallback Function(List<String> o)? listString]) async {
+    buildParameters();
+
+    final objectFuture = _mnGenre!.toList(qparams);
+
+    final List<String> objectsData = <String>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i][qparams.selectColumns![0]].toString());
+    }
+    if (listString != null) {
+      listString(objectsData);
+    }
+    return objectsData;
+  }
+}
+// endregion GenreFilterBuilder
+
+// region GenreFields
+class GenreFields {
+  static TableField? _fId;
+  static TableField get id {
+    return _fId = _fId ?? SqlSyntax.setField(_fId, 'id', DbType.integer);
+  }
+
+  static TableField? _fName;
+  static TableField get name {
+    return _fName = _fName ?? SqlSyntax.setField(_fName, 'name', DbType.text);
+  }
+}
+// endregion GenreFields
+
+//region GenreManager
+class GenreManager extends SqfEntityProvider {
+  GenreManager()
+      : super(MyAppDatabaseModel(),
+            tableName: _tableName,
+            primaryKeyList: _primaryKeyList,
+            whereStr: _whereStr);
+  static const String _tableName = 'genres';
+  static const List<String> _primaryKeyList = ['id'];
+  static const String _whereStr = 'id=?';
+}
+
+//endregion GenreManager
 /// Region SEQUENCE IdentitySequence
 class IdentitySequence {
   /// Assigns a new value when it is triggered and returns the new value

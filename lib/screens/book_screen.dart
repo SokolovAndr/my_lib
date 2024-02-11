@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_lib/models/models.dart';
 import 'package:my_lib/screens/author_choose_screen.dart';
+import 'package:my_lib/screens/genre_choose_screen.dart';
 
 class BookScreen extends StatefulWidget {
   final Book? book;
@@ -16,12 +17,16 @@ class _BookScreenState extends State<BookScreen> {
   Widget build(BuildContext context) {
     final titleController = TextEditingController();
     final authorNameController = TextEditingController();
+    final genreNameController = TextEditingController();
+
     Author? author = Author();
+    Genre? genre = Genre();
 
 
     if (widget.book != null) {
       titleController.text = widget.book!.title!;
       authorNameController.text = widget.book!.plAuthor!.name!;
+      genreNameController.text = widget.book!.plGenre!.name!;
     }
 
 
@@ -90,14 +95,51 @@ class _BookScreenState extends State<BookScreen> {
 
             ),
             Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+
+                child: TextFormField(
+                  readOnly: true,
+                  controller: genreNameController,
+                  textCapitalization:
+                  TextCapitalization.sentences, //текст с заглавной буквы
+                  maxLines: 1,
+                  decoration:  InputDecoration(
+                      hintText: 'Жанр',
+                      labelText: genre.name ?? "Название жанра",
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                            width: 0.75,
+                          ),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10.0),
+                          ))),
+                  onTap: () async {
+                    genre = await Navigator.push<Genre>(context,
+                        MaterialPageRoute(builder: (context) {
+                          return const GenreChooseScreen();
+                        }));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(  content: Text(
+                        "Выбранный жанр: ${genre!.name}" ??
+                            "User doesn't press anything")));
+                    genreNameController.text = genre!.name.toString();
+                  },
+                )
+
+            ),
+            Padding(
               padding: const EdgeInsets.only(top: 20.0),
               child: ElevatedButton(
                   onPressed: () async {
                     final myTitle = titleController.value.text;
-                    final myName = authorNameController.value.text;
-                    final authId = await MyAppDatabaseModel().execScalar('SELECT id FROM authors WHERE name = "$myName" ');
 
-                    if (myTitle.isEmpty || myName.isEmpty) {
+                    final myAuthor = authorNameController.value.text;
+                    final authId = await MyAppDatabaseModel().execScalar('SELECT id FROM authors WHERE name = "$myAuthor" ');
+
+                    final myGenre = genreNameController.value.text;
+                    final genreId = await MyAppDatabaseModel().execScalar('SELECT id FROM genres WHERE name = "$myGenre" ');
+
+                    if (myTitle.isEmpty || myAuthor.isEmpty || myGenre.isEmpty) {
                       return;
                     }
 
@@ -105,6 +147,7 @@ class _BookScreenState extends State<BookScreen> {
                         title: myTitle,
                         isInactive: false,
                         authorsId: author?.id = authId,
+                        genresId: genre?.id = genreId,
                         //authorsId: author?.id,
                         id: widget.book?.id);
 

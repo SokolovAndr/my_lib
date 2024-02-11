@@ -51,6 +51,20 @@ class _BookWidgetState extends State<BookWidget> {
                             fontSize: 16, fontWeight: FontWeight.w400),
                         //maxLines: 3,
                       ),
+                      const Padding(
+                        padding:
+                        EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        child: Divider(
+                          thickness: 1,
+                        ),
+                      ),
+                      Text(
+                        widget.book!.plGenre!.name.toString(),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w400),
+                        //maxLines: 3,
+                      ),
+
                     ],
                   ),
                 ),

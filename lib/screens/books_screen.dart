@@ -74,6 +74,32 @@ class _BooksScreenState extends State<BooksScreen> {
                             )));
                     loadData();
                   } ,
+                  onLongPress: () async {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text(
+                              'Вы уверены, что хотите удалить книгу?'),
+                            actions: [
+                              ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                    MaterialStateProperty.all(Colors.red) ),
+                                  onPressed: () async {
+                                  await books?[index].delete();
+
+                                  Navigator.pop(context);
+                                  loadData();
+                                  },
+                                  child: const Text('Да')),
+                              ElevatedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Нет'))
+                            ],
+                          );
+                    });
+                  },
                 ),
         ),
       

@@ -4,9 +4,11 @@ import 'package:my_lib/models/models.dart';
 class BookWidget extends StatefulWidget {
   final Book? book;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
   const BookWidget({Key? key,
+    required this.book,
     required this.onTap,
-    required this.book})
+    required this.onLongPress})
       : super(key: key);
 
   @override
@@ -17,6 +19,7 @@ class _BookWidgetState extends State<BookWidget> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onLongPress: widget.onLongPress,
       onTap: widget.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6),

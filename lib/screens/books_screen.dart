@@ -13,9 +13,15 @@ class BooksScreen extends StatefulWidget {
 
 class _BooksScreenState extends State<BooksScreen> {
   List<Book>? books = [];
+  List<Genre> genres = [];
+
+  List<String?> categories = [];
+  List<String> selectedCategories = [];
 
   loadData() async {
     books = await Book().select().toList(preload: true);
+    genres = await Genre().select().toList();
+    categories = genres.map((genre) => genre.name).toList();
     setState(() {});
   }
 
@@ -27,82 +33,118 @@ class _BooksScreenState extends State<BooksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filterBooks = books!.where((book) {
+      return selectedCategories.isEmpty ||
+          selectedCategories.contains(book.plGenre?.name);
+    }).toList();
+
     return Scaffold(
-        backgroundColor: Colors.grey[200],
-        appBar: AppBar(
-          title: const Text("Книги"),
-          centerTitle: true,
-          toolbarHeight: 50,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.delete),
+      backgroundColor: Colors.grey[200],
+      appBar: AppBar(
+        title: const Text("Книги"),
+        centerTitle: true,
+        toolbarHeight: 50,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              await Book().select().isInactive.equals(true).delete();
+              loadData();
+            },
+          )
+        ],
+      ),
+      floatingActionButton: Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 1, color: Colors.black),
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
               onPressed: () async {
-                await Book().select().isInactive.equals(true).delete();
-                //await Book().select().delete();
+                await Navigator.push<Book>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BookScreen()));
                 loadData();
               },
-            )
-          ],
-        ),
-        floatingActionButton: Container(
-            decoration: BoxDecoration(
-              border: Border.all(width: 1, color: Colors.black),
-              color: Colors.white,
-              shape: BoxShape.circle,
+              icon: const Icon(Icons.add))),
+      body: Column(
+        children: [
+          SizedBox(
+            width: 400,
+            height: 50,
+            child: Container(
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: categories
+                    .map(
+                      (category) => Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: FilterChip(
+                            selected: selectedCategories.contains(category),
+                            label: Text(category!),
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  selectedCategories.add(category);
+                                } else {
+                                  selectedCategories.remove(category);
+                                }
+                              });
+                            }),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-            child: IconButton(
-                onPressed: () async {
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filterBooks?.length,
+              itemBuilder: (context, int index) => BookWidget(
+                book: filterBooks?[index],
+                onTap: () async {
                   await Navigator.push<Book>(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const BookScreen()));
+                          builder: (context) => BookScreen(
+                                book: books?[index],
+                                auth: books?[index].plAuthor,
+                              )));
                   loadData();
                 },
-                icon: const Icon(Icons.add))),
-        body: ListView.builder(
-            itemCount: books?.length,
-            itemBuilder: (context, int index) => BookWidget(
-                  book: books?[index],
-
-                  onTap: ()   async {
-                    await Navigator.push<Book>(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => BookScreen(
-                                book: books?[index], auth: books?[index].plAuthor,
-
-                            )));
-                    loadData();
-                  } ,
-                  onLongPress: () async {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text(
+                onLongPress: () async {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text(
                               'Вы уверены, что хотите удалить книгу?'),
-                            actions: [
-                              ElevatedButton(
+                          actions: [
+                            ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                    MaterialStateProperty.all(Colors.red) ),
-                                  onPressed: () async {
+                                    backgroundColor:
+                                        MaterialStateProperty.all(Colors.red)),
+                                onPressed: () async {
                                   await books?[index].delete();
 
                                   Navigator.pop(context);
                                   loadData();
-                                  },
-                                  child: const Text('Да')),
-                              ElevatedButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Нет'))
-                            ],
-                          );
-                    });
-                  },
-                ),
-        ),
-      
+                                },
+                                child: const Text('Да')),
+                            ElevatedButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Нет'))
+                          ],
+                        );
+                      });
+                },
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }

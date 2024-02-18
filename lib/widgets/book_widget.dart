@@ -5,10 +5,11 @@ class BookWidget extends StatefulWidget {
   final Book? book;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
-  const BookWidget({Key? key,
-    required this.book,
-    required this.onTap,
-    required this.onLongPress})
+  const BookWidget(
+      {Key? key,
+      required this.book,
+      required this.onTap,
+      required this.onLongPress})
       : super(key: key);
 
   @override
@@ -22,11 +23,11 @@ class _BookWidgetState extends State<BookWidget> {
       onLongPress: widget.onLongPress,
       onTap: widget.onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3),
         child: Card(
           elevation: 2,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Row(
               children: [
                 SizedBox(
@@ -37,13 +38,11 @@ class _BookWidgetState extends State<BookWidget> {
                     errorBuilder: (BuildContext context, Object exception,
                         StackTrace? stackTrace) {
                       return Center(
-                        child:
-                        /*Text(
-                        'Мы не смогли загрузить изображение :(',
-                        style: TextStyle(fontSize: 12),
-                            textAlign: TextAlign.center,
-                      ),*/
-                        Image.asset("assets/images/error_icon.png", width: 50,height: 50,),
+                        child: Image.asset(
+                          "assets/images/error_icon.png",
+                          width: 50,
+                          height: 50,
+                        ),
                       );
                     },
                     loadingBuilder: (BuildContext context, Widget child,
@@ -55,7 +54,7 @@ class _BookWidgetState extends State<BookWidget> {
                         child: CircularProgressIndicator(
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                  loadingProgress.expectedTotalBytes!
                               : null,
                         ),
                       );
@@ -90,7 +89,7 @@ class _BookWidgetState extends State<BookWidget> {
                       ),
                       const Padding(
                         padding:
-                        EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                            EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                         child: Divider(
                           thickness: 1,
                         ),
@@ -101,19 +100,17 @@ class _BookWidgetState extends State<BookWidget> {
                             fontSize: 16, fontWeight: FontWeight.w400),
                         //maxLines: 3,
                       ),
-
                     ],
                   ),
                 ),
                 Checkbox(
                     value: widget.book!.isInactive,
-                    onChanged: (bool? value ) {
-                  setState(() {
-                    widget.book!.isInactive = value!;
-                    widget.book!.save();
-                  });
-                }
-                ),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        widget.book!.isInactive = value!;
+                        widget.book!.save();
+                      });
+                    }),
               ],
             ),
           ),

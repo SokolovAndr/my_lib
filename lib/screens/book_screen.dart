@@ -5,8 +5,7 @@ import 'package:my_lib/screens/genre_choose_screen.dart';
 
 class BookScreen extends StatefulWidget {
   final Book? book;
-  final Author? auth;
-  const BookScreen({Key? key, this.book, this.auth}) : super(key: key);
+  const BookScreen({Key? key, this.book}) : super(key: key);
 
   @override
   State<BookScreen> createState() => _BookScreenState();

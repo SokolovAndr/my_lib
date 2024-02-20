@@ -110,7 +110,6 @@ class _BooksScreenState extends State<BooksScreen> {
                       MaterialPageRoute(
                           builder: (context) => BookScreen(
                                 book: books?[index],
-                                auth: books?[index].plAuthor,
                               )));
                   loadData();
                 },

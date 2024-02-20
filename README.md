@@ -1,6 +1,6 @@
 # my_lib
 
-![Image alt]([https://github.com/SokolovAndr/PoleChudes/blob/master/ScreenshotPolechudes.png](https://github.com/SokolovAndr/my_lib/blob/master/animation.gif))
+![Image alt](https://github.com/SokolovAndr/my_lib/blob/master/animation.gif)
 
 A new Flutter project.
 
